@@ -7,6 +7,9 @@ from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis import settings, HealthCheck
 
+from orders_app.domain.services import OrderService
+from orders_app.infrastructure.memory_repository import MemoryOrderRepository
+
 client = TestClient(app)
 
 
@@ -115,3 +118,11 @@ def test_total_valido_property(client, total):
     )
 
     assert response.status_code == 200
+
+
+def test_service_con_memory_repo():
+    repo = MemoryOrderRepository()
+    service = OrderService(repo)
+
+    order = service.create_order(1, 100)
+    assert order.id == 1    
