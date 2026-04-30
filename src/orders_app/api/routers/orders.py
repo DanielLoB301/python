@@ -10,8 +10,13 @@ from orders_app.api.auth import get_current_user
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 
+from fastapi import HTTPException
+
 @router.post("/", response_model=OrderOut)
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
+    if order.total > 10000:
+        raise HTTPException(status_code=400, detail="Total excede límite permitido")
+
     new_order = Order(user_id=order.user_id, total=order.total)
     db.add(new_order)
     db.commit()
