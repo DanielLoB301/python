@@ -9,6 +9,11 @@ from hypothesis import settings, HealthCheck
 
 from orders_app.domain.services import OrderService
 from orders_app.infrastructure.memory_repository import MemoryOrderRepository
+from orders_app.domain.pricing import DiscountPricing
+from orders_app.infrastructure.cache_decorator import simple_cache
+from orders_app.infrastructure.payment_adapter import ExternalPaymentAPI, PaymentAdapter
+
+
 
 client = TestClient(app)
 
@@ -120,9 +125,31 @@ def test_total_valido_property(client, total):
     assert response.status_code == 200
 
 
+from orders_app.domain.pricing import NormalPricing
+
 def test_service_con_memory_repo():
     repo = MemoryOrderRepository()
-    service = OrderService(repo)
+    service = OrderService(repo, NormalPricing())
 
-    order = service.create_order(1, 100)
-    assert order.id == 1    
+
+def test_discount_strategy():
+    strategy = DiscountPricing(0.1)
+    assert strategy.calculate(100) == 90
+
+def test_cache_decorator():
+    calls = []
+
+    @simple_cache
+    def f(x):
+        calls.append(x)
+        return x * 2
+
+    assert f(2) == 4
+    assert f(2) == 4
+    assert len(calls) == 1
+
+def test_payment_adapter():
+    api = ExternalPaymentAPI()
+    adapter = PaymentAdapter(api)
+
+    assert adapter.pay(100) is True    

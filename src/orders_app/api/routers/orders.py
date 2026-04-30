@@ -8,15 +8,16 @@ from orders_app.api.auth import get_current_user
 from orders_app.infrastructure.sql_repository import SqlOrderRepository
 from orders_app.domain.services import OrderService
 
+from fastapi import HTTPException
+from orders_app.domain.pricing import NormalPricing
+
 router = APIRouter(prefix="/orders", tags=["orders"])
 
-
-from fastapi import HTTPException
 
 @router.post("/", response_model=OrderOut)
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     repo = SqlOrderRepository(db)
-    service = OrderService(repo)
+    service = OrderService(repo, NormalPricing())
 
     try:
         return service.create_order(order.user_id, order.total)
