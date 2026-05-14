@@ -7,11 +7,13 @@ from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis import settings, HealthCheck
 
+from orders_app.application.use_cases import CreateOrderUseCase
 from orders_app.domain.services import OrderService
 from orders_app.infrastructure.memory_repository import MemoryOrderRepository
 from orders_app.domain.pricing import DiscountPricing
 from orders_app.infrastructure.cache_decorator import simple_cache
 from orders_app.infrastructure.payment_adapter import ExternalPaymentAPI, PaymentAdapter
+from orders_app.tests.fake_notifier import FakeNotifier
 
 
 
@@ -152,4 +154,14 @@ def test_payment_adapter():
     api = ExternalPaymentAPI()
     adapter = PaymentAdapter(api)
 
-    assert adapter.pay(100) is True    
+    assert adapter.pay(100) is True
+
+def test_create_order_domain():
+    repo = MemoryOrderRepository()
+    notifier = FakeNotifier()
+
+    use_case = CreateOrderUseCase(repo, notifier)
+
+    order = use_case.execute(1, 100)
+
+    assert order.id == 1

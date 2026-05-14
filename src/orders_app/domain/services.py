@@ -16,7 +16,7 @@ class OrderService:
             raise ValueError("Total excede límite permitido")
 
         order = Order(user_id=user_id, total=total)
-        return self.repository.add(order)
+        return self.repository.save(order)
 
 
     @simple_cache

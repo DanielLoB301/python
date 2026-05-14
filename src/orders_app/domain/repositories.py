@@ -1,5 +1,5 @@
 from typing import Protocol, List
-from orders_app.db.models import Order
+from .entities import Order
 
 
 class OrderRepository(Protocol):

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from orders_app.api.deps import get_db
+from orders_app.application.use_cases import CreateOrderUseCase
 from orders_app.db.models import Order
 from orders_app.api.schemas.order import OrderCreate, OrderOut
 from typing import List
 from orders_app.api.auth import get_current_user
+from orders_app.infrastructure.notification_http import HttpNotifier
 from orders_app.infrastructure.sql_repository import SqlOrderRepository
 from orders_app.domain.services import OrderService
 
@@ -63,3 +65,12 @@ def delete_order(order_id: int, db: Session = Depends(get_db), user=Depends(get_
     db.delete(order)
     db.commit()
     return {"detail": "Order eliminada"}    
+
+@router.post("/")
+def create_order(order: OrderCreate, db: Session = Depends(get_db)):
+    repo = SqlOrderRepository(db)
+    notifier = HttpNotifier()
+
+    use_case = CreateOrderUseCase(repo, notifier)
+
+    return use_case.execute(order.user_id, order.total)
